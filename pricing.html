@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Service Pricing Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+	    margin: 20px;
+	    padding: 20px;
+            background:#F2F3F3;
+        }
+        .service-container {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .service-breakdown {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }
+        .total-price {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #252F3E;
+            color: white;
+            padding: 20px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="padding-top:0px;margin-top:0px">Create an Estimate</h1>
+    <div id="services-list"></div>
+    <button onclick="addService()" style="font-size:15px"> + Add Service </button>
+    <div class="total-price">
+        Total Estimated Price: <span style="color:#FF9900;"> $</span><span id="total-price" style="color:	#FF9900;">0.00</span>
+    </div>
+    <script>
+        const pricing = {
+            "EC2 Windows": 0.5,
+            "EC2 Linux": 0.3,
+            "Managed NoSQL": 0.5,
+            "Relational Database Service": 0.25,
+            "Serverless Function": 0.3,
+            "Text Recognition": 0.1
+        };
+
+        let services = [];
+
+        function addService() {
+            const serviceContainer = document.createElement("div");
+            serviceContainer.classList.add("service-container");
+
+            const select = document.createElement("select");
+            select.innerHTML = `
+                <option value="">Select Service</option>
+                <option value="EC2 Windows">EC2 - Windows</option>
+                <option value="EC2 Linux">EC2 - Linux</option>
+                <option value="Managed NoSQL">Managed NoSQL</option>
+                <option value="Relational Database Service">Relational Database Service</option>
+                <option value="Serverless Function">Serverless Function</option>
+                <option value="Text Recognition">Text Recognition</option>
+            `;
+            select.onchange = () => updatePrice();
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.placeholder = "Enter hours/requests";
+            input.oninput = () => updatePrice();
+
+            const breakdown = document.createElement("div");
+            breakdown.classList.add("service-breakdown");
+
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = "Remove";
+            removeBtn.onclick = () => {
+                services = services.filter(s => s.container !== serviceContainer);
+                serviceContainer.remove();
+                updatePrice();
+            };
+
+            serviceContainer.appendChild(select);
+            serviceContainer.appendChild(input);
+            serviceContainer.appendChild(breakdown);
+            serviceContainer.appendChild(removeBtn);
+            document.getElementById("services-list").appendChild(serviceContainer);
+
+            services.push({ select, input, breakdown, container: serviceContainer });
+        }
+
+        function updatePrice() {
+            let total = 0;
+            services.forEach(({ select, input, breakdown }) => {
+                const service = select.value;
+                const units = parseFloat(input.value) || 0;
+                let cost = 0;
+
+                if (pricing[service]) {
+                    cost = pricing[service] * units;
+                    total += cost;
+                    breakdown.textContent = `${pricing[service]} x ${units} = $${cost.toFixed(2)}`;
+                } else {
+                    breakdown.textContent = "";
+                }
+            });
+            document.getElementById("total-price").textContent = total.toFixed(2);
+        }
+    </script>
+</body>
+</html>
